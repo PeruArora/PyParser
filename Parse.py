@@ -25,7 +25,7 @@ while continueChoice in ['y', 'Y']:
         
         except:
             fin = open("input_grammar.cfg", "a")
-            fin.write(\n)
+            fin.write("\n")
             print "Enter Your Grammar: "
 
         # To take grammar as an input from the user
