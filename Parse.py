@@ -5,7 +5,7 @@ import operator
 continueChoice = 'y'
 while continueChoice in ['y', 'Y']:
     
-    choice = int(raw_input(' 1. String Parser\n 2. Airthmatic Parser\n Enter Your Choice: '))
+    choice = int(raw_input(' 1. String Parser\n 2. Arithmetic Parser\n Enter Your Choice: '))
     
     # String Parser
     if choice == 1 :
@@ -139,7 +139,7 @@ while continueChoice in ['y', 'Y']:
                     return self.key
 
 
-         # Aritmetic Parsing
+         # Arithmetic Parsing
         def buildParseTree(fpexp):
             fplist = fpexp.split()
             pStack = Stack()
