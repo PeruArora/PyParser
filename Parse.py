@@ -22,7 +22,7 @@ if choice == 1 :
         tree.draw()
     
     except:
-        fin = open("input_grammar.cfg", "a")
+        fin = open("input_grammar.cfg", "w+")
         fin.write("\n")
         print "Enter Your Grammar: "
 
