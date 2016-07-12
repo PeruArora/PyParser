@@ -188,6 +188,9 @@ while continueChoice in ['y', 'Y']:
         pt.postorder()
         print "Ans is: "
         print pt.postordereval()
+    
+    else:
+        print "\n\t\t Invalid Choice!"
     continueChoice = raw_input("Do you want to continue?(Y/N): ")
 
 
