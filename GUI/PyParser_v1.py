@@ -35,7 +35,7 @@ def arithmeticParse(event):
 
     myLabel = Label(arithWindow, text="Enter Fully Paranthesized Arithmetic Expression ", pady=10, padx=10, font=textFont, fg="white", bg="#093145")
     myEntry = Entry(arithWindow, width=50, textvariable=exp)
-    myButton = Button(arithWindow, text="Generate Expression Tree", font=textFont, fg="#093145", bg="#EFD469")
+    myButton = Button(arithWindow, text="Generate Expression Tree", font=textFont, fg="#093145", bg="#EFD469", bd=4)
     myLabel.place(relx="0.03", rely="0.24")
     myEntry.place(relx="0.53", rely="0.27")
     myButton.place(relx="0.37", rely="0.4")
