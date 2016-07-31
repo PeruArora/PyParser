@@ -130,10 +130,12 @@ elif choice == 2:
             if self.leftChild:
                 res1 = self.leftChild.postordereval()  #// \label{peleft}
             if self.rightChild:
-                res2 = self.rightChild.postordereval() #// \label{peright}
-            if res1 and res2:
-                return opers[self.key](res1,res2) #// \label{peeval}
-            else:
+                res2 = self.rightChild.postordereval() #// \label{peright}      
+            if res1 or res2:
+                return opers[self.key](res1,res2) #// \label{peeval}        
+            if (res1 == 0) and (res2 ==0):
+                return 0
+            else:        
                 return self.key
 
 
