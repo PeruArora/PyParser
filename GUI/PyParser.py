@@ -29,6 +29,7 @@ def arithmeticParse(event):
    
    
     # Arithmetic Parser Layout
+
     exp = StringVar()
 
     arithmeticLabel = Label(arithWindow, text="Arithmetic Parser", pady=10, font=mainFont, fg="#EFD469", bg="#093145")
@@ -39,68 +40,138 @@ def arithmeticParse(event):
     myButton = Button(arithWindow, text="Generate Expression Tree", font=textFont, fg="#093145", bg="#EFD469")
     myLabel.place(relx="0.03", rely="0.24")
     myEntry.place(relx="0.53", rely="0.27")
-    myButton.place(relx="0.37", rely="0.4")
+    myButton.place(relx="0.2", rely="0.4")
 
     # Function
 
     def expressionTree(event):
+        clearButton = Button(arithWindow, text="Clear Window", font=textFont, fg="#093145", bg="#EFD469")
+        clearButton.place(relx="0.6", rely="0.4")
+
         expression = exp.get()
         lst = expression.split()
         parIncrement=0
+        operCount = 0
         parDecrement=0
+        minNoOfParen = 0
         for i in lst:
+            if i.isalpha():
+                tkMessageBox.showwarning("Ouch!", "Only Numeric Data Is Allowed")
+                break
             if i=='(':
                 parIncrement+=1
             elif i==')':
                 parDecrement+=1
+            elif i in ['+', '-', '*', '/', '^', '%']:
+                operCount+=1
+                minNoOfParen+=2
 
-        if parIncrement != parDecrement:
+        if ('{' or '[' or '}' or ']' or '<' or '>') in lst:
+            tkMessageBox.showwarning("Ouch!", "Only '(' and ')' Are Allowed ")
+            arithWindow.destroy()
+            root.deiconify()
+        if parIncrement != parDecrement or lst[0] is not '(' or minNoOfParen > (parIncrement + parDecrement) :
             tkMessageBox.showwarning("Ouch!", "Invalid!\nExpression is Not Correctly Parenthesized.")
         else:
             arithParse = arithmeticParser()
-            expTree = arithParse.buildParseTree(expression)
-            treeLabel1 = Label(arithWindow, text="PostOrder Traversal", pady=5, font=textFont, fg="white", bg="#093145")
-            treeLabel1.place(relx="0.27", rely="0.6")
+            treeLabel1 = Label(arithWindow, text="PostFix Expression", pady=5, font=textFont, fg="white", bg="#093145")
+            treeLabel3 = Label(arithWindow, text="PreFix Expression", pady=5, font=textFont, fg="white", bg="#093145")
+            treeLabel5 = Label(arithWindow, text="InFix Expression", pady=5, font=textFont, fg="white", bg="#093145")
+            treeLabel1.place(relx="0.27", rely="0.55")
+            treeLabel3.place(relx="0.27", rely="0.65")
+            treeLabel5.place(relx="0.27", rely="0.75")
 
-            # RPN
+            # Reverse Polish Notation
 
             def reversePolishNotation(exp):
                 for i in range(len(exp)):
                     try:
-                        exp[i] = int(exp[i])
+                        exp[i] = float(exp[i])
                     except:
                         exp[i] = exp[i]
 
                 s = Stack()
-                exparray=[]
+                expArray=[]
                 for i in exp:
                     if i == '(':
                         s.push('(')
-                    elif type(i) is int:
-                        exparray.append(i)
-                    elif i in ['+', '-', '*', '/', '^']:
+                    elif type(i) is float:
+                        expArray.append(i)
+                    elif i in ['+', '-', '*', '/', '^', '%']:
                         s.push(i)
                     elif i == ')':
                         for j in range(s.size()-1,0,-1):
-                            if s.peek() in ['+', '-', '*', '/', '^']:
-                                exparray.append(s.pop())
+                            if s.peek() in ['+', '-', '*', '/', '^', '%']:
+                                expArray.append(s.pop())
                             elif s.peek() == '(':
                                 s.pop()
                                 break
-                return exparray
+                return expArray
 
-            postOrder = reversePolishNotation(lst)
-            treeLabel2 = Label(arithWindow, text=postOrder, pady=10, padx=10, font=textFont, fg="white", bg="#093145")
-            treeLabel2.place(relx="0.6", rely="0.6")
-            #expTree.postorder()
+            #RPN Evaluation
+
+            def postOrderEval(exp):
+                opers = {'+':operator.add, '-':operator.sub, '*':operator.mul, '/':operator.truediv, '^': operator.pow, '%': operator.mod}
+                eStack = Stack()
+                for i in exp:
+                    if type(i) is float:
+                        eStack.push(i)
+                    elif i in ['+', '-', '*', '/', '^','%']:
+                        operand1 = eStack.pop()
+                        operand2 = eStack.pop()
+                        eStack.push(opers[i](operand2,operand1))
+                return eStack.peek()
+
+
+            #PreFix Expression
+
+            def preFixExpression(exp):
+                exp = exp[::-1]
+                for i in range(0,len(exp)):
+                    if exp[i] == '(':
+                        exp[i] = ')'
+                    elif exp[i] == ')':
+                        exp[i] = '('
+                preExp = reversePolishNotation(exp)
+                preExp = preExp[::-1]
+
+                return preExp
+
+            def inFixExpression(exp):
+                for i in exp:
+                    if i == '(' or i ==')':
+                        exp.remove(i)
+
+                return exp
+
+            postFix = reversePolishNotation(lst)
+            treeLabel2 = Label(arithWindow, text=postFix, pady=10, padx=10, font=textFont, fg="white", bg="#093145")
+            treeLabel2.place(relx="0.6", rely="0.55")
+            
+            preFix = preFixExpression(lst)
+            treeLabel4 = Label(arithWindow, text=preFix, pady=10, padx=10, font=textFont, fg="white", bg="#093145")
+            treeLabel4.place(relx="0.6", rely="0.65")
+            
+            inFix = inFixExpression(lst)
+            treeLabel6 = Label(arithWindow, text=inFix, pady=10, padx=10, font=textFont, fg="white", bg="#093145")
+            treeLabel6.place(relx="0.6", rely="0.75")
+            
             answerLabel = Label(arithWindow, text="Answer To The Expression Is ", pady=10, padx=10,font=textFont,fg="white",bg="#093145")
-            answer = expTree.postordereval()
+            answer = postOrderEval(postFix)
             answerLabel1 = Label(arithWindow, text=answer, pady=5, padx=5, font=textFont, fg="white", bg="#093145")
-            answerLabel.place(relx="0.26", rely="0.72")
-            answerLabel1.place(relx="0.64", rely="0.72")
+            answerLabel.place(relx="0.26", rely="0.85")
+            answerLabel1.place(relx="0.64", rely="0.85")
+
+        def clearWindow(event):
+            treeLabel2.destroy()
+            answerLabel1.destroy()
+            treeLabel4.destroy()
+            treeLabel6.destroy()
 
 
+        clearButton.bind("<Button-1>", clearWindow)
     myButton.bind("<Button-1>",expressionTree)
+
 
 # Stack Defination
 
@@ -210,11 +281,11 @@ class arithmeticParser(Stack, BinaryTree):
                 self.currentTree.insertLeft('')
                 pStack.push(self.currentTree)
                 self.currentTree = self.currentTree.getLeftChild()
-            elif i not in ['+', '-', '*', '/', ')']:
-                self.currentTree.setRootVal(int(i))
+            elif i not in ['+', '-', '*', '/', ')','^','%']:
+                self.currentTree.setRootVal(float(i))
                 parent = pStack.pop()
                 self.currentTree = parent
-            elif i in ['+', '-', '*', '/']:
+            elif i in ['+', '-', '*', '/','^']:
                 self.currentTree.setRootVal(i)
                 self.currentTree.insertRight('')
                 pStack.push(self.currentTree)
@@ -248,7 +319,6 @@ def arithmeticHelp():
     bottomFrame.pack(side=BOTTOM)
 
     head_font = tkFont.Font(family="Trebuchet MS", size=27, weight="bold")
-    #head_font.configure(underline = True)
     arithHeadLabel = Label(topFrame, text="Arithmetic Guide", font=head_font, bg="#093145", fg="#EFD469")
     arithHeadLabel.pack()
 
@@ -272,41 +342,46 @@ def arithmeticHelp():
     quote = """
 
 
-                Insert a fully parenthesized expression in the first entry box. Don't forget to add space between the 
-                operators, operands and parenthesis. After that click on 'Generate Expression Tree' and get the required 
-                parsed expression.
-                In infix arithmetic expressions, operators are placed between two operands -- as shown in the examples below:
+    Insert a fully parenthesized expression in the first entry box. Don't forget to add space between the 
+    operators, operands and parenthesis. After that click on 'Generate Expression Tree' and get the 
+    required parsed expression.
+    
+    In infix arithmetic expressions, operators are placed between two operands-- as shown in the examples 
+    below:
 
-                    2 + 3    or    1 + ( 2 + 3 ) * ( 4 * 5 )    
-                    
-                FULLY PARENTHESIZED ARITHMETIC EXPRESSION: 
-                A fully parenthesized expression is a method of writting arithmetic expressions in which parentheses are 
-                placed around each pair of operands and its associated operator. A fully parenthesized arithmetic expression is an 
-                infix arithmetic expression where every operator and its arguments are contained in parentheses, as 
-                seen in following:
-                    
-                    ( 2 + 3 )    or    ( 1 + ( 2 + 3 ) * ( 4 * 5 ) )
-                    
-                Note that a fully parenthesized expression explicitly details the order in which the operators are to be 
-                applied. Consequently, in the evaluation of such expressions, operator precedence and associativity don't 
-                really matter at all.
+        2 + 3    or    1 + ( 2 + 3 ) * ( 4 * 5 )    
+        
+    FULLY PARENTHESIZED ARITHMETIC EXPRESSION: 
+    
+    
+    A fully parenthesized expression is a method of writting arithmetic expressions in which parentheses
+    are placed around each pair of operands and its associated operator. A fully parenthesized arithmetic
+    expression is an infix arithmetic expression where every operator and its arguments are contained in 
+    parentheses, as seen in following:
+        
+        ( 2 + 3 )    or    ( 1 + ( 2 + 3 ) * ( 4 * 5 ) )
+        
+    Note that a fully parenthesized expression explicitly details the order in which the operators are to
+    be applied. Consequently, in the evaluation of such expressions,operator precedence and associativity
+    don't really matter at all.
 
 
-                For Example :
+    For Example :
 
-                ( ( 5 + 5) * ( 9 * 3 ) )
+    ( ( 5 + 5) * ( 9 * 3 ) )
 
-                The above example gives the output :
+    The above example gives the output :
 
-                *
-                +
-                5
-                5
-                *
-                9
-                3
+    *
+    +
+    5
+    5
+    *
+    9
+    3
 
-                And evaluates to : 270
+    And evaluates to : 270
+
 
             """
     T.insert(0.0,sub_heading)
@@ -327,7 +402,6 @@ def stringHelp():
     bottomFrame.pack(side=BOTTOM)
 
     head_font = tkFont.Font(family="Trebuchet MS", size=27, weight="bold")
-    #head_font.configure(underline = True)
     headLabel = Label(topFrame, text="String Guide", font=head_font, bg="#093145", fg="#EFD469")
     headLabel.pack()
 
@@ -343,103 +417,105 @@ def stringHelp():
     T.config(yscrollcommand=S.set)
 
     sub_heading1 = """
-
+    
     HOW TO USE STRING PARSER: """
     
     quote1 = """
 
 
-                A String Parser is basically used to make a parse tree from a given grammar and sentence. 
-                First , enter a meaningful sentence in English.In the next entry box that says "Enter Your Grammar" 
-                enter the complete grammar as explained in the example below.The grammar consists of production rule 
-                that consists of terminals and non terminals.
+    A String Parser is basically used to make a parse tree from a given grammar and sentence. First ,
+    enter a meaningful sentence in English. In the next entry box that says "Enter Your Grammar" enter
+    the complete grammar as explained in the example below. The grammar consists of production rule that
+    consists of terminals and non terminals.
 
-                Terminal symbols are literal symbols which may appear in the outputs of the production rules of a formal 
-                grammar and which cannot be changed using the rules of the grammar. Applying the rules recursively to a 
-                source string of symbols will usually terminate in a final output string consisting only of terminal 
-                symbols.
+    Terminal symbols are literal symbols which may appear in the outputs of the  production  rules  of  a 
+    formal grammar and which cannot be changed using the rules of the  grammar.  Applying  the  rules 
+    recursively to a source string of symbols will usually terminate in a final output string consisting
+    only of terminal symbols.
 
-                Nonterminal symbols are those symbols which can be replaced. They may also be called simply syntactic 
-                variables. A formal grammar includes a start symbol,a designated member of the set of nonterminals 
-                from which all the strings in the language may be derived by successive applications of the production
-                rules.
-                In fact, the language defined by a grammar is precisely the set of terminal strings that can be so 
-                derived. A grammar is defined by production rules (or just 'productions') that specify which s
-                ymbols may replace which other symbols; these rules may be used to generate strings, or to parse them.
-                Each such rule has a head, or left-hand side, which consists of the string that may be replaced, and a
-                body, or right-hand side, which consists of a string that may replace it. Rules are often written in 
-                the form head ->  body; e.g., the rule a -> b specifies that a can be replaced by b.
+    Nonterminal symbols are those symbols which can be replaced. They may also be called simply syntactic 
+    variables. A formal grammar includes a start symbol, a designated member of the set of nonterminals 
+    from which all the strings in a language may be derived by successive applications of the production
+    rules.
+    
+    In fact, the language defined by a grammar is precisely the set of terminal strings that can be so 
+    derived. A grammar is defined by production rules (or just 'productions') that specify which symbols
+    may replace which other symbols; these rules may be used to generate strings, or to parse them. Each
+    such rule has a head, or left-hand side, which consists of the string that may be replaced, and a
+    body, or right-hand side, which consists of a string that may replace it. Rules are often written in
+    the form head ->  body; e.g., the rule a -> b specifies that a can be replaced by b.
 
-                For Example :
+    For Example :
 
-                Sentence : 
-                I shot an elephant in my pajamas.
-                
-                Grammar:
-                S -> NP VP
-                PP -> P NP
-                NP -> Det N | Det N PP | 'I'
-                VP -> V NP | VP PP
-                Det -> 'an' | 'my'
-                N -> 'elephant' | 'pajamas'
-                V -> 'shot'
-                P -> 'in'  
+    Sentence : 
+    I shot an elephant in my pajamas
+    
+    Grammar:
+    S -> NP VP
+    PP -> P NP
+    NP -> Det N | Det N PP | 'I'
+    VP -> V NP | VP PP
+    Det -> 'an' | 'my'
+    N -> 'elephant' | 'pajamas'
+    V -> 'shot'
+    P -> 'in'  
 
-                Another Example,
+    Another Example,
 
-                Sentence : 
-                The dog chased a cat.
-                
-                Grammar:
-                S -> NP VP
-                PP -> P NP
-                NP -> Det N | NP PP
-                VP -> V NP | VP PP
-                Det -> 'a' | 'The' |'the'
-                N -> 'dog' | 'cat'
-                V -> 'chased' | 'sat'
-                P -> 'on' | 'in'
+    Sentence : 
+    The dog chased a cat
+    
+    Grammar:
+    S -> NP VP
+    PP -> P NP
+    NP -> Det N | NP PP
+    VP -> V NP | VP PP
+    Det -> 'a' | 'The' |'the'
+    N -> 'dog' | 'cat'
+    V -> 'chased' | 'sat'
+    P -> 'on' | 'in'
 
-                
-                Here the words S,NP,VP etc are the part of POS TAG LIST.
-                The list is as :
-                No.     Tag     Description
-                1.      CC      Coordinating conjunction
-                2.      CD      Cardinal number
-                3.      DT      Determiner
-                4.      EX      Existential there
-                5.      FW      Foreign word
-                6.      IN      Preposition or subordinating conjunction
-                7.      JJ      Adjective
-                8.      JJR     Adjective, comparative
-                9.      JJS     Adjective, superlative
-                10.     LS      List item marker
-                11.     MD      Modal
-                12.     NN      Noun, singular or mass
-                13.     NNS     Noun, plural
-                14.     NNP     Proper noun, singular
-                15.     NNPS    Proper noun, plural
-                16.     PDT     Predeterminer
-                17.     POS     Possessive ending
-                18.     PRP     Personal pronoun
-                19.     PRP$    Possessive pronoun
-                20.     RB      Adverb
-                21.     RBR     Adverb, comparative
-                22.     RBS     Adverb, superlative
-                23.     RP      Particle
-                24.     SYM     Symbol
-                25.     TO      to
-                26.     UH      Interjection
-                27.     VB      Verb, base form
-                28.     VBD     Verb, past tense
-                29.     VBG     Verb, gerund or present participle
-                30.     VBN     Verb, past participle
-                31.     VBP     Verb, non-3rd person singular present
-                32.     VBZ     Verb, 3rd person singular present
-                33.     WDT     Wh-determiner
-                34.     WP      Wh-pronoun
-                35.     WP$     Possessive wh-pronoun
-                36.     WRB     Wh-adverb
+    
+    Here the words S,NP,VP etc are the part of POS TAG LIST.
+    The list is as :
+    No.     Tag     Description
+    1.      CC      Coordinating conjunction
+    2.      CD      Cardinal number
+    3.      DT      Determiner
+    4.      EX      Existential there
+    5.      FW      Foreign word
+    6.      IN      Preposition or subordinating conjunction
+    7.      JJ      Adjective
+    8.      JJR     Adjective, comparative
+    9.      JJS     Adjective, superlative
+    10.     LS      List item marker
+    11.     MD      Modal
+    12.     NN      Noun, singular or mass
+    13.     NNS     Noun, plural
+    14.     NNP     Proper noun, singular
+    15.     NNPS    Proper noun, plural
+    16.     PDT     Predeterminer
+    17.     POS     Possessive ending
+    18.     PRP     Personal pronoun
+    19.     PRP$    Possessive pronoun
+    20.     RB      Adverb
+    21.     RBR     Adverb, comparative
+    22.     RBS     Adverb, superlative
+    23.     RP      Particle
+    24.     SYM     Symbol
+    25.     TO      to
+    26.     UH      Interjection
+    27.     VB      Verb, base form
+    28.     VBD     Verb, past tense
+    29.     VBG     Verb, gerund or present participle
+    30.     VBN     Verb, past participle
+    31.     VBP     Verb, non-3rd person singular present
+    32.     VBZ     Verb, 3rd person singular present
+    33.     WDT     Wh-determiner
+    34.     WP      Wh-pronoun
+    35.     WP$     Possessive wh-pronoun
+    36.     WRB     Wh-adverb
+	
             """
     T.insert(0.0,sub_heading1)
     T.insert(END, quote1, welcomeFont)
@@ -480,34 +556,63 @@ def stringParse(event):
     sentencelabel = Label(stringWindow, text="Enter Your Sentence ", pady=10, padx=10, font=textFont, fg="white", bg="#093145")
     grammarLabel = Label(stringWindow, text="Enter Your Grammar ", pady=10, padx=10, font=textFont, fg="white", bg="#093145")
     sentenceEntry = Entry(stringWindow, width=82, textvariable=sentence)
-    grammarText = Text(stringWindow, height=5, width=65)
+    grammarText1 = Text(stringWindow, height=5, width=65)
+    grammarText2 = Text(stringWindow, height=5, width=65)
     parseTree = Button(stringWindow, text="Generate Parse Tree", font=textFont, fg="#093145", bg="#EFD469", bd=4)
+    parseTree2 = Button(stringWindow, text="Generate Second Parse Tree", font=textFont, fg="#093145", bg="#EFD469", bd=4)
     quitButton = Button(stringWindow, text="Go Back", width=17, font=textFont, fg="#093145", bg="#EFD469", bd=4)
 
     stringLabel.place(relx="0.32", rely="0.04")
     sentencelabel.place(relx="0.05", rely="0.28")
     sentenceEntry.place(relx="0.32", rely="0.31")
     grammarLabel.place(relx="0.05", rely="0.42")
-    grammarText.place(relx="0.32", rely="0.45")
-    parseTree.place(relx="0.12", rely="0.75")
-    quitButton.place(relx="0.68", rely="0.75")
+    grammarText1.place(relx="0.32", rely="0.45")
+    grammarText2.place(relx="0.32", rely="0.65")
+    parseTree.place(relx="0.12", rely="0.80")
+    parseTree2.place(relx="0.12", rely="0.89")
+    quitButton.place(relx="0.68", rely="0.80")
 
     # Main Operation
 
     def stringParser(event):
         senten = sentence.get()
-        word = senten.split()
+        word = senten.split(".")        
+        first_sen = word[0].split()
+        second_sen = word[1].split() 
+        
+        def firstParseTree(first_sen):
+            grammar1 = grammarText1.get("0.0",END)
+            grammarPath1 = nltk.grammar.CFG.fromstring(grammar1,encoding='utf-8')
 
-        grammar = grammarText.get("0.0",END)
-        grammarPath = nltk.grammar.CFG.fromstring(grammar,encoding='utf-8')
+            ch_parser1 = nltk.ChartParser(grammarPath1)
 
-        ch_parser = nltk.ChartParser(grammarPath)
+            for tree in ch_parser1.parse(first_sen):
+                print tree
+            tree.draw() 
+        firstParseTree(first_sen)      
+        
+    def stringParser2(event):
+        senten = sentence.get()
+        word = senten.split(".")        
+        first_sen = word[0].split()
+        second_sen = word[1].split()     
+        
+        def secondParseTree(second_sen):
+            grammar2 = grammarText2.get("0.0",END)
+            grammarPath2 = nltk.grammar.CFG.fromstring(grammar2,encoding='utf-8')
 
-        for tree in ch_parser.parse(word):
-            print tree
-        tree.draw()
+            ch_parser2 = nltk.ChartParser(grammarPath2)
 
+            for tree in ch_parser2.parse(second_sen):
+                print tree
+            tree.draw() 
+
+          
+        secondParseTree(second_sen)
+        
+        
     parseTree.bind("<Button-1>",stringParser)
+    parseTree2.bind("<Button-1>",stringParser2)
 
     # Quit Button 
 
@@ -537,8 +642,6 @@ subLabel = Label(root, text="Choose The Type", font = subFont, fg = "#ffffff", b
 arithButton = Button(root, text="Arithmetic Parser", font =largeFont, height=2, width=20, bg="#EFD469", relief=RAISED, bd = 4)
 stringButton = Button(root, text="String Parser",font = largeFont, height=2, width=20, bg="#EFD469", relief=RAISED, bd=4)
 exitButton = Button(root, text="Exit", font=largeFont, height=2, width=20, bg="#CD594A", relief=RAISED, bd=4)
-
-#mainFont.configure(underline = True)
 
 
 welcomeLabel.place(relx=0.25, rely=0.18)
