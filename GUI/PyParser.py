@@ -73,7 +73,6 @@ def arithmeticParse(event):
         if parIncrement != parDecrement or lst[0] is not '(' or minNoOfParen > (parIncrement + parDecrement) :
             tkMessageBox.showwarning("Ouch!", "Invalid!\nExpression is Not Correctly Parenthesized.")
         else:
-            arithParse = arithmeticParser()
             treeLabel1 = Label(arithWindow, text="PostFix Expression", pady=5, font=textFont, fg="white", bg="#093145")
             treeLabel3 = Label(arithWindow, text="PreFix Expression", pady=5, font=textFont, fg="white", bg="#093145")
             treeLabel5 = Label(arithWindow, text="InFix Expression", pady=5, font=textFont, fg="white", bg="#093145")
