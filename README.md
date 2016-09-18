@@ -8,8 +8,4 @@ Takes in grammar and sentence from the user and prints out a parse tree.
 
 >>> Arithmetic Parser:
 
-Takes in fully paranthesized arithmetic expression from the user and evaluates it.
-
-
-Credits:
-Bradley N. Miller, David L. Ranum (used thier class BinaryTree)
+Takes in fully paranthesized arithmetic expression from the user, evaluates it and generates expression tree.
